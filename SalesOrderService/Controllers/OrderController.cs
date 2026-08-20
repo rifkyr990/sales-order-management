@@ -35,12 +35,22 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(new { Message = "Order harus memiliki minimal 1 item." });
+        var result = await _orderService.CreateOrderAsync(dto);
+        if (!result.Success)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
+            });
+        }
 
-        var success = await _orderService.CreateOrderAsync(dto);
-        if (!success) return BadRequest(new { Message = "Gagal menyimpan order." });
-
-        return Ok(new { Message = "Sales Order berhasil disimpan." });
+        return StatusCode(201, new
+        {
+            success = true,
+            salesSoId = result.SalesSoId,
+            message = result.Message
+        });
     }
 }
