@@ -15,14 +15,46 @@ public class SalesOrderService : ISalesOrderService
         _context = context;
     }
 
-    public async Task<IEnumerable<OrderListDto>> GetOrdersAsync(string? search)
+    public async Task<IEnumerable<OrderListDto>> GetOrdersAsync(string? keyword, DateTime? orderDate)
     {
-        // Menjalankan Query Stored Procedure sp_get_orders
-        var query = _context.Database.SqlQueryRaw<OrderListDto>(
-            "EXEC sp_get_orders @Keyword = {0}", search ?? (object)DBNull.Value
-        );
+        object dateParam = orderDate.HasValue ? orderDate.Value.Date : DBNull.Value;
+        
+        return await _context.Database.SqlQueryRaw<OrderListDto>(
+            "EXEC sp_get_orders @Keyword = {0}, @OrderDate = {1}", 
+            keyword ?? (object)DBNull.Value, 
+            dateParam
+        ).ToListAsync();
+    }
 
-        return await query.ToListAsync();
+    public async Task<OrderDetailDto?> GetOrderByIdAsync(int id)
+    {
+        var order = await _context.SalesSos
+            .Include(o => o.Items)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.SalesSoId == id);
+
+        if (order == null) return null;
+
+        var items = order.Items.Select(i => new OrderItemDetailDto(
+            i.SalesSoLitemId,
+            i.ItemName,
+            i.Quantity,
+            (decimal)i.Price,
+            (decimal)(i.Quantity * i.Price)
+        )).ToList();
+
+        decimal grandTotal = items.Sum(i => i.Total);
+
+        return new OrderDetailDto(
+            order.SalesSoId,
+            order.SoNo,
+            order.OrderDate,
+            order.ComCustomerId,
+            "Customer Name Placeholder",
+            order.Address,
+            grandTotal,
+            items
+        );
     }
 
     public async Task<bool> CreateOrderAsync(CreateOrderDto dto)

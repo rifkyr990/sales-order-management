@@ -16,10 +16,20 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetOrders([FromQuery] string? search)
+    public async Task<IActionResult> GetOrders([FromQuery] string? keyword, [FromQuery] DateTime? orderDate)
     {
-        var orders = await _orderService.GetOrdersAsync(search);
+        var orders = await _orderService.GetOrdersAsync(keyword, orderDate);
         return Ok(orders);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrderById(int id)
+    {
+        var order = await _orderService.GetOrderByIdAsync(id);
+        if (order == null)
+            return NotFound(new { success = false, message = "Order tidak ditemukan" });
+
+        return Ok(order);
     }
 
     [HttpPost]
