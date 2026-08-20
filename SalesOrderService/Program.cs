@@ -1,4 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using SalesOrderService.Data;
+using SalesOrderService.Services.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<SalesOrderDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService.Services.SalesOrderService>();
 
 // 1. Tambahkan service ke container
 builder.Services.AddControllers();
