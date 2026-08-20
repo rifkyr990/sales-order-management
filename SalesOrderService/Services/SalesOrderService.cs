@@ -123,4 +123,36 @@ public class SalesOrderService : ISalesOrderService
         _context.SalesSos.Remove(order);
         return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<byte[]> ExportOrdersToExcelAsync(string? keyword, DateTime? orderDate)
+    {
+        var orders = await GetOrdersAsync(keyword, orderDate);
+
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Sales Orders");
+
+        // Header Table
+        worksheet.Cell(1, 1).Value = "Sales SO ID";
+        worksheet.Cell(1, 2).Value = "SO No";
+        worksheet.Cell(1, 3).Value = "Order Date";
+        worksheet.Cell(1, 4).Value = "Customer Name";
+        worksheet.Cell(1, 5).Value = "Address";
+        worksheet.Cell(1, 6).Value = "Grand Total";
+
+        int row = 2;
+        foreach (var order in orders)
+        {
+            worksheet.Cell(row, 1).Value = order.SalesSoId;
+            worksheet.Cell(row, 2).Value = order.SoNo;
+            worksheet.Cell(row, 3).Value = order.OrderDate.ToString("yyyy-MM-dd");
+            worksheet.Cell(row, 4).Value = order.CustomerName;
+            worksheet.Cell(row, 5).Value = order.Address;
+            worksheet.Cell(row, 6).Value = order.GrandTotal;
+            row++;
+        }
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        return stream.ToArray();
+    }
 }
