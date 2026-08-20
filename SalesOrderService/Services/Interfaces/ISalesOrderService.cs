@@ -4,6 +4,7 @@ namespace SalesOrderService.Services.Interfaces;
 
 public interface ISalesOrderService
 {
-    Task<IEnumerable<OrderListDto>> GetOrdersAsync(string? search);
+    Task<IEnumerable<OrderListDto>> GetOrdersAsync(string? keyword, DateTime? orderDate);
+    Task<OrderDetailDto?> GetOrderByIdAsync(int id);
     Task<bool> CreateOrderAsync(CreateOrderDto dto);
 }
