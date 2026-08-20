@@ -1,0 +1,64 @@
+@model List<FrontEnd.Models.OrderListDto>
+
+<div class="container mt-4">
+    <h2>Daftar Sales Order</h2>
+    
+    <!-- Filter Header -->
+    <form method="get" class="row g-3 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="keyword" class="form-control" placeholder="Cari SO No / Customer..." value="@ViewBag.Keyword">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="orderDate" class="form-control" value="@ViewBag.OrderDate">
+        </div>
+        <div class="col-md-5">
+            <button type="submit" class="btn btn-primary">Cari</button>
+            <a href="/Order/Index" class="btn btn-secondary">Reset</a>
+            <a href="http://localhost:5002/api/orders/export?keyword=@ViewBag.Keyword&orderDate=@ViewBag.OrderDate" class="btn btn-success">Export Excel</a>
+            <a href="/Order/Create" class="btn btn-success float-end">+ Order Baru</a>
+        </div>
+    </form>
+
+    <!-- Data Table -->
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>SO ID</th>
+                <th>SO No</th>
+                <th>Order Date</th>
+                <th>Customer</th>
+                <th>Address</th>
+                <th>Grand Total</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.SalesSoId</td>
+                    <td>@item.SoNo</td>
+                    <td>@item.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td>@item.CustomerName</td>
+                    <td>@item.Address</td>
+                    <td>Rp @item.GrandTotal.ToString("N0")</td>
+                    <td>
+                        <a href="/Order/Edit/@item.SalesSoId" class="btn btn-sm btn-warning">Edit</a>
+                        <button onclick="deleteOrder(@item.SalesSoId)" class="btn btn-sm btn-danger">Hapus</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+async function deleteOrder(id) {
+    if (!confirm('Yakin ingin menghapus order ini?')) return;
+
+    const res = await fetch(`/Order/Delete/${id}`, { method: 'POST' });
+    const result = await res.json();
+    alert(result.message);
+    if (res.ok) location.reload();
+}
+</script>

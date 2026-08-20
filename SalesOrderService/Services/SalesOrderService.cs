@@ -3,6 +3,7 @@ using SalesOrderService.Data;
 using SalesOrderService.Models.DTOs;
 using SalesOrderService.Models.Entities;
 using SalesOrderService.Services.Interfaces;
+using ClosedXML.Excel;
 
 namespace SalesOrderService.Services;
 
