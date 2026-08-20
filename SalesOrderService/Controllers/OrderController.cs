@@ -53,4 +53,14 @@ public class OrdersController : ControllerBase
             message = result.Message
         });
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(int id, [FromBody] CreateOrderDto dto)
+    {
+        var result = await _orderService.UpdateOrderAsync(id, dto);
+        if (!result.Success)
+            return NotFound(new { success = false, message = "Order tidak ditemukan" });
+
+        return Ok(new { success = true, message = result.Message });
+    }
 }

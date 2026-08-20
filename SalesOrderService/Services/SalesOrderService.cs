@@ -89,4 +89,29 @@ public class SalesOrderService : ISalesOrderService
 
         return (true, order.SalesSoId, "Order berhasil dibuat", null);
     }
+
+    public async Task<(bool Success, string Message)> UpdateOrderAsync(int id, CreateOrderDto dto)
+    {
+        var existingOrder = await _context.SalesSos
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.SalesSoId == id);
+
+        if (existingOrder == null) return (false, "Order tidak ditemukan.");
+
+        existingOrder.SoNo = dto.SoNo;
+        existingOrder.OrderDate = dto.OrderDate;
+        existingOrder.ComCustomerId = dto.CustomerId;
+        existingOrder.Address = dto.Address;
+
+        _context.SalesSoLitems.RemoveRange(existingOrder.Items);
+        existingOrder.Items = dto.Items.Select(i => new SalesSoLitem
+        {
+            ItemName = i.ItemName,
+            Quantity = i.Quantity,
+            Price = (double)i.Price
+        }).ToList();
+
+        await _context.SaveChangesAsync();
+        return (true, "Order berhasil diperbarui");
+    }
 }
