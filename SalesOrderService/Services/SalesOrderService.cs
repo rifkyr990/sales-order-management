@@ -57,23 +57,36 @@ public class SalesOrderService : ISalesOrderService
         );
     }
 
-    public async Task<bool> CreateOrderAsync(CreateOrderDto dto)
+    public async Task<(bool Success, int SalesSoId, string Message, List<string>? Errors)> CreateOrderAsync(CreateOrderDto dto)
     {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(dto.SoNo)) errors.Add("Nomor SO wajib diisi.");
+        if (dto.CustomerId <= 0) errors.Add("Customer wajib dipilih.");
+        if (dto.Items == null || !dto.Items.Any()) errors.Add("Order minimal harus memiliki 1 item.");
+
+        var isDuplicate = await _context.SalesSos.AnyAsync(o => o.SoNo.ToLower() == dto.SoNo.ToLower());
+        if (isDuplicate) errors.Add($"Nomor SO '{dto.SoNo}' sudah digunakan.");
+
+        if (errors.Any()) return (false, 0, "Validasi gagal", errors);
+
         var order = new SalesSo
         {
             SoNo = dto.SoNo,
             OrderDate = dto.OrderDate,
-            ComCustomerId = dto.ComCustomerId,
+            ComCustomerId = dto.CustomerId,
             Address = dto.Address,
-            Items = dto.Items.Select(i => new SalesSoLitem
+            Items = dto.Items!.Select(i => new SalesSoLitem
             {
                 ItemName = i.ItemName,
                 Quantity = i.Quantity,
-                Price = i.Price
+                Price = (double)i.Price
             }).ToList()
         };
 
         _context.SalesSos.Add(order);
-        return await _context.SaveChangesAsync() > 0;
+        await _context.SaveChangesAsync();
+
+        return (true, order.SalesSoId, "Order berhasil dibuat", null);
     }
 }
