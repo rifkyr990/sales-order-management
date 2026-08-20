@@ -73,4 +73,11 @@ public class OrdersController : ControllerBase
 
         return Ok(new { success = true, message = "Order berhasil dihapus" });
     }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportToExcel([FromQuery] string? keyword, [FromQuery] DateTime? orderDate)
+    {
+        var excelBytes = await _orderService.ExportOrdersToExcelAsync(keyword, orderDate);
+        return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SalesOrders.xlsx");
+    }
 }
