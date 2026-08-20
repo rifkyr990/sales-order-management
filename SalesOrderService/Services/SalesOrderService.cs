@@ -114,4 +114,13 @@ public class SalesOrderService : ISalesOrderService
         await _context.SaveChangesAsync();
         return (true, "Order berhasil diperbarui");
     }
+
+    public async Task<bool> DeleteOrderAsync(int id)
+    {
+        var order = await _context.SalesSos.FindAsync(id);
+        if (order == null) return false;
+
+        _context.SalesSos.Remove(order);
+        return await _context.SaveChangesAsync() > 0;
+    }
 }

@@ -63,4 +63,14 @@ public class OrdersController : ControllerBase
 
         return Ok(new { success = true, message = result.Message });
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(int id)
+    {
+        var success = await _orderService.DeleteOrderAsync(id);
+        if (!success)
+            return NotFound(new { success = false, message = "Order tidak ditemukan" });
+
+        return Ok(new { success = true, message = "Order berhasil dihapus" });
+    }
 }
