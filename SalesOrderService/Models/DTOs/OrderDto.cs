@@ -4,22 +4,10 @@ public record OrderListDto(
     int SalesSoId,
     string SoNo,
     DateTime OrderDate,
+    int CustomerId,
     string CustomerName,
-    double TotalAmount
-);
-
-public record CreateOrderDto(
-    string SoNo,
-    DateTime OrderDate,
-    int ComCustomerId,
     string? Address,
-    List<CreateOrderItemDto> Items
-);
-
-public record CreateOrderItemDto(
-    string ItemName,
-    int Quantity,
-    double Price
+    decimal GrandTotal
 );
 
 public record OrderDetailDto(
@@ -39,4 +27,18 @@ public record OrderItemDetailDto(
     int Quantity,
     decimal Price,
     decimal Total
+);
+
+public record CreateOrderDto(
+    string SoNo,
+    DateTime OrderDate,
+    int CustomerId,
+    string? Address,
+    List<CreateOrderItemDto> Items
+);
+
+public record CreateOrderItemDto(
+    string ItemName,
+    int Quantity,
+    decimal Price
 );
