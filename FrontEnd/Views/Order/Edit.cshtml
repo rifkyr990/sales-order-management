@@ -1,0 +1,72 @@
+@model FrontEnd.Models.OrderDetailViewModel
+
+<div class="container mt-4">
+    <h3>Edit Sales Order</h3>
+    <form id="orderForm" class="mt-3">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label>Nomor SO</label>
+                <input type="text" id="soNo" class="form-control" value="@Model.SoNo" required />
+            </div>
+            <div class="col-md-4">
+                <label>Tanggal Order</label>
+                <input type="date" id="orderDate" class="form-control" required value="@Model.OrderDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-4">
+                <label>Customer</label>
+                <select id="customerId" class="form-control" required>
+                    <option value="">-- Pilih Customer --</option>
+                    @foreach (var c in ViewBag.Customers)
+                    {
+                        if (c.CustomerId == Model.CustomerId)
+                        {
+                            <option value="@c.CustomerId" selected>@c.CustomerName</option>
+                        }
+                        else
+                        {
+                            <option value="@c.CustomerId">@c.CustomerName</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label>Alamat Pengiriman</label>
+            <textarea id="address" class="form-control" rows="2">@Model.Address</textarea>
+        </div>
+
+        <h5>Detail Items</h5>
+        <table class="table table-bordered" id="itemTable">
+            <thead>
+                <tr>
+                    <th>Nama Barang</th>
+                    <th width="150">Jumlah</th>
+                    <th width="200">Harga Satuan</th>
+                    <th width="80">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td><input type="text" class="form-control item-name" value="@item.ItemName" required /></td>
+                        <td><input type="number" class="form-control item-qty" min="1" value="@item.Quantity" required /></td>
+                        <td><input type="number" class="form-control item-price" min="0" value="@Math.Floor(item.Price)" required /></td>
+                        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-secondary mb-3" onclick="addRow()">+ Tambah Item</button>
+
+        <div>
+            <button type="button" class="btn btn-primary" onclick="submitOrder('@Model.SalesSoId')">Update Order</button>
+            <a href="/Order/Index" class="btn btn-light">Batal</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/order-edit.js"></script>
+}
