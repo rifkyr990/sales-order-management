@@ -16,10 +16,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetOrders([FromQuery] string? keyword, [FromQuery] DateTime? orderDate)
+    public async Task<IActionResult> GetOrders([FromQuery] string? keyword, [FromQuery] DateTime? orderDate,[FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 10)
     {
-        var orders = await _orderService.GetOrdersAsync(keyword, orderDate);
-        return Ok(orders);
+        var result = await _orderService.GetOrdersAsync(keyword, orderDate, pageNumber, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

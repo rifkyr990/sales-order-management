@@ -7,7 +7,8 @@ public record OrderListDto(
     int CustomerId,
     string CustomerName,
     string? Address,
-    decimal GrandTotal
+    decimal GrandTotal,
+    int TotalCount
 );
 
 public record OrderDetailDto(
@@ -42,3 +43,12 @@ public record CreateOrderItemDto(
     int Quantity,
     decimal Price
 );
+
+public class PagedResult<T>
+{
+    public List<T> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+}

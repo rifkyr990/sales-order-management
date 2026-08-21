@@ -16,15 +16,27 @@ public class SalesOrderService : ISalesOrderService
         _context = context;
     }
 
-    public async Task<IEnumerable<OrderListDto>> GetOrdersAsync(string? keyword, DateTime? orderDate)
+    public async Task<PagedResult<OrderListDto>> GetOrdersAsync(string? keyword, DateTime? orderDate, int pageNumber = 1, int pageSize = 10)
     {
         object dateParam = orderDate.HasValue ? orderDate.Value.Date : DBNull.Value;
         
-        return await _context.Database.SqlQueryRaw<OrderListDto>(
-            "EXEC sp_get_orders @Keyword = {0}, @OrderDate = {1}", 
+        var items = await _context.Database.SqlQueryRaw<OrderListDto>(
+            "EXEC sp_get_orders @Keyword = {0}, @OrderDate = {1}, @PageNumber = {2}, @PageSize = {3}", 
             keyword ?? (object)DBNull.Value, 
-            dateParam
+            dateParam,
+            pageNumber,
+            pageSize
         ).ToListAsync();
+
+        int totalCount = items.FirstOrDefault()?.TotalCount ?? 0;
+
+        return new PagedResult<OrderListDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     public async Task<OrderDetailDto?> GetOrderByIdAsync(int id)
@@ -127,7 +139,7 @@ public class SalesOrderService : ISalesOrderService
 
     public async Task<byte[]> ExportOrdersToExcelAsync(string? keyword, DateTime? orderDate)
     {
-        var orders = await GetOrdersAsync(keyword, orderDate);
+        var pagedResult = await GetOrdersAsync(keyword, orderDate, pageNumber: 1, pageSize: int.MaxValue);
 
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Sales Orders");
@@ -141,7 +153,8 @@ public class SalesOrderService : ISalesOrderService
         worksheet.Cell(1, 6).Value = "Grand Total";
 
         int row = 2;
-        foreach (var order in orders)
+        // Iterasi dilakukan pada pagedResult.Items
+        foreach (var order in pagedResult.Items)
         {
             worksheet.Cell(row, 1).Value = order.SalesSoId;
             worksheet.Cell(row, 2).Value = order.SoNo;

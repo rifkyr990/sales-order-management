@@ -1,4 +1,4 @@
-@model List<FrontEnd.Models.OrderListDto>
+@model FrontEnd.Models.PagedResultViewModel<FrontEnd.Models.OrderListDto>
 
 <div class="container mt-4">
     <h2>Daftar Sales Order</h2>
@@ -33,32 +33,123 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (Model.Items.Any())
+            {
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.SalesSoId</td>
+                        <td>@item.SoNo</td>
+                        <td>@item.OrderDate.ToString("dd/MM/yyyy")</td>
+                        <td>@item.CustomerName</td>
+                        <td>@item.Address</td>
+                        <td>Rp @item.GrandTotal.ToString("N0")</td>
+                        <td>
+                            <a href="/Order/Edit/@item.SalesSoId" class="btn btn-sm btn-warning">Edit</a>
+                            <button onclick="deleteOrder(@item.SalesSoId)" class="btn btn-sm btn-danger">Hapus</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@item.SalesSoId</td>
-                    <td>@item.SoNo</td>
-                    <td>@item.OrderDate.ToString("dd/MM/yyyy")</td>
-                    <td>@item.CustomerName</td>
-                    <td>@item.Address</td>
-                    <td>Rp @item.GrandTotal.ToString("N0")</td>
-                    <td>
-                        <a href="/Order/Edit/@item.SalesSoId" class="btn btn-sm btn-warning">Edit</a>
-                        <button onclick="deleteOrder(@item.SalesSoId)" class="btn btn-sm btn-danger">Hapus</button>
-                    </td>
+                    <td colspan="7" class="text-center">Data tidak ditemukan.</td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <!-- Info & Pagination -->
+    @if (Model.TotalCount > 0)
+    {
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                Menampilkan @((Model.PageNumber - 1) * Model.PageSize + 1)–@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)) dari @Model.TotalCount data
+            </small>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="?keyword=@ViewBag.Keyword&orderDate=@ViewBag.OrderDate&pageNumber=@(Model.PageNumber - 1)">Previous</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="?keyword=@ViewBag.Keyword&orderDate=@ViewBag.OrderDate&pageNumber=@i">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="?keyword=@ViewBag.Keyword&orderDate=@ViewBag.OrderDate&pageNumber=@(Model.PageNumber + 1)">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    }
 </div>
 
 <script>
-async function deleteOrder(id) {
-    if (!confirm('Yakin ingin menghapus order ini?')) return;
+function deleteOrder(id) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Data order yang dihapus tidak dapat dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/Order/Delete/${id}`, { method: 'POST' });
+                const responseData = await res.json();
 
-    const res = await fetch(`/Order/Delete/${id}`, { method: 'POST' });
-    const result = await res.json();
-    alert(result.message);
-    if (res.ok) location.reload();
+                if (res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: responseData.message || 'Data order berhasil dihapus.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire('Gagal!', responseData.message || 'Terjadi kesalahan.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+            }
+        }
+    });
 }
 </script>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '@TempData["SuccessMessage"]',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: '@TempData["ErrorMessage"]'
+        });
+    </script>
+}

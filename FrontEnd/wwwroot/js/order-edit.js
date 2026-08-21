@@ -43,10 +43,19 @@ async function submitOrder(salesSoId) {
     const data = await res.json();
 
     if (res.ok && data.success) {
-        alert(data.message || 'Order berhasil diupdate!');
-        window.location.href = '/Order/Index';
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: data.message || 'Order berhasil diupdate!',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => { window.location.href = '/Order/Index'; });
     } else {
         const errorMsg = data.errors ? data.errors.join('\n') : data.message;
-        alert('Gagal: ' + errorMsg);
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal menyimpan!',
+            text: errorMsg
+        });
     }
 }
