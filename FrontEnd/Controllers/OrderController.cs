@@ -14,15 +14,16 @@ public class OrderController : Controller
 
     // List Order
     [HttpGet]
-    public async Task<IActionResult> Index(string? keyword, string? orderDate)
+    public async Task<IActionResult> Index(string? keyword, string? orderDate, int pageNumber = 1, int pageSize = 10)
     {
         var client = _clientFactory.CreateClient("SalesOrderService");
-        var orders = await client.GetFromJsonAsync<List<OrderListDto>>($"api/orders?keyword={keyword}&orderDate={orderDate}");
+        var response = await client.GetFromJsonAsync<PagedResultViewModel<OrderListDto>>(
+            $"api/orders?keyword={keyword}&orderDate={orderDate}&pageNumber={pageNumber}&pageSize={pageSize}");
 
         ViewBag.Keyword = keyword;
         ViewBag.OrderDate = orderDate;
 
-        return View(orders ?? new List<OrderListDto>());
+        return View(response ?? new PagedResultViewModel<OrderListDto>());
     }
 
     // Form Tambah Order
